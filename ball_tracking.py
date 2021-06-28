@@ -15,13 +15,23 @@ ap.add_argument("-v", "--video",
 	help="path to the (optional) video file")
 ap.add_argument("-b", "--buffer", type=int, default=64,
 	help="max buffer size")
+ap.add_argument("-l", "--low", type=int, default=110,
+	help="low color")
+ap.add_argument("-H", "--high", type=int, default=205,
+	help="high color")
+ap.add_argument("-s", "--min", type=int, default=50,
+	help="ball size")
+ap.add_argument("-S", "--max", type=int, default=300,
+	help="ball size")
 args = vars(ap.parse_args())
 
 # define the lower and upper boundaries of the "green"
 # ball in the HSV color space, then initialize the
 # list of tracked points
-greenLower = (29, 86, 6)
-greenUpper = (64, 255, 255)
+low = args["low"]
+high = args["high"]
+greenLower = (0, 0, 100)
+greenUpper = (0, 0, 199)
 pts = deque(maxlen=args["buffer"])
 
 # if a video path was not supplied, grab the reference
@@ -42,6 +52,7 @@ Data_Points = pd.DataFrame(data = None, columns = Data_Features , dtype = float)
 start = time.time()
 
 # keep looping
+mask = None
 while True:
 	# grab the current frame
 	(grabbed, frame) = camera.read()
@@ -57,7 +68,8 @@ while True:
 	# resize the frame, blur it, and convert it to the HSV
 	# color space
 	frame = imutils.resize(frame, width=1800)
-	# blurred = cv2.GaussianBlur(frame, (11, 11), 0)
+	#blurred = cv2.GaussianBlur(frame, (11, 11), 0)
+	#hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 	hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
 	# construct a mask for the color "green", then perform
@@ -69,8 +81,7 @@ while True:
 
 	# find contours in the mask and initialize the current
 	# (x, y) center of the ball
-	cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
-		cv2.CHAIN_APPROX_SIMPLE)[-2]
+	cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
 	center = None
 
 	# only proceed if at least one contour was found
@@ -80,12 +91,17 @@ while True:
 		# centroid
 		c = max(cnts, key=cv2.contourArea)
 		((x, y), radius) = cv2.minEnclosingCircle(c)
+
 		M = cv2.moments(c)
 		center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+		maxRadius = args["max"]
+		minRadius = args["min"]
+		if radius > maxRadius or radius < minRadius or int(x) > 900:
+			center = None
 		
 
 		# only proceed if the radius meets a minimum size
-		if (radius < 300) & (radius > 10 ) : 
+		if radius < args["max"] and radius > args["min"] and int(x) < 900: 
 			# draw the circle and centroid on the frame,
 			# then update the list of tracked points
 			cv2.circle(frame, (int(x), int(y)), int(radius),
@@ -94,8 +110,8 @@ while True:
 			
 			#Save The Data Points
 			Data_Points.loc[Data_Points.size/3] = [x , y, current_time]
+			print("x: " + str(int(x)) + "y: " + str(int(y)) + "radius: " + str(radius))
 
-	# update the points queue
 	pts.appendleft(center)
 
 	# loop over the set of tracked points
@@ -111,7 +127,8 @@ while True:
 		cv2.line(frame, pts[i - 1], pts[i], (0, 0, 255), thickness)
 
 	# show the frame to our screen
-	cv2.imshow("Frame", frame)
+	cv2.imshow("Frame", mask)
+	#cv2.imshow("Frame", frame)
 	key = cv2.waitKey(1) & 0xFF
 
 	# if the 'q' key is pressed, stop the loop
