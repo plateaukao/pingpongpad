@@ -33,6 +33,7 @@ else:
 Data_Features = ['x', 'y', 'time']
 Data_Points = pd.DataFrame(data = None, columns = Data_Features , dtype = float)
 
+fps = 30
 #Reading the time in the begining of the video.
 start = time.time()
 
@@ -49,17 +50,17 @@ total_balls = 0
 last_ball_in_time = 0
 
 skip_frames = 100
+frame_count = 0
 while True:
 	while (skip_frames > 0):
 		skip_frames -= 1
 		camera.read()
+		frame_count +=1
 
 	# grab the current frame
 	(grabbed, frame) = camera.read()
+	frame_count += 1
 	
-	#Reading The Current Time
-	current_time = time.time() - start
-
 	# if we are viewing a video and we did not grab a frame,
 	# then we have reached the end of the video
 	if args.get("video") and not grabbed:
@@ -96,13 +97,13 @@ while True:
 	
 	if not ball_in and ball_in_this_time:
 		total_hits = total_hits + 1
-		if current_time - last_ball_in_time < 1:
+		if frame_count - last_ball_in_time < fps:
 			continous_hits = continous_hits + 1
 		else:
 			total_balls += 1
 			continous_hits = 1
 
-		last_ball_in_time = current_time
+		last_ball_in_time = frame_count
 		if continous_hits > max_continuous_hits:
 			max_continuous_hits = continous_hits
 
@@ -120,6 +121,7 @@ while True:
 	cv2.moveWindow("threshold", 0, 400)
 	cv2.imshow("Frame Delta", frameDelta)
 	cv2.moveWindow("Frame Delta", 0, 800)
+	#cv2.moveWindow("Red Mask", 0, 1200)
 
 	#pts.appendleft(center)
 
@@ -161,11 +163,14 @@ plt.savefig('Time_vs_Theta_Graph.svg', transparent= True)
 camera.release()
 cv2.destroyAllWindows()
 
+elapsed_time = frame_count
+
 print("""
 ############
 Statistics
 ############
 	  """)
+print("Time: %2d:%2d:%2d" % (elapsed_time / 30 / 60 / 60, elapsed_time / 30 / 60 % 60, elapsed_time / 30 % 60))
 print("Total hits: " + str(total_hits))
 print("Total balls: " + str(total_balls))
 print("Max continuous hits: " + str(max_continuous_hits))
