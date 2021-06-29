@@ -37,13 +37,23 @@ Data_Points = pd.DataFrame(data = None, columns = Data_Features , dtype = float)
 start = time.time()
 
 # keep looping
-points = 0
+total_hits = 0
 mask = None
 firstFrame = None
 
 ball_in = False
+max_continuous_hits = 0
+continous_hits = 0
+total_balls = 0
 
+last_ball_in_time = 0
+
+skip_frames = 100
 while True:
+	while (skip_frames > 0):
+		skip_frames -= 1
+		camera.read()
+
 	# grab the current frame
 	(grabbed, frame) = camera.read()
 	
@@ -55,7 +65,6 @@ while True:
 	if args.get("video") and not grabbed:
 		break
 
-	text = "Unoccupied"
 	# resize the frame, blur it, and convert it to the HSV
 	# color space
 	frame = imutils.resize(frame, width=500)
@@ -79,27 +88,38 @@ while True:
 		if cv2.contourArea(c) < 30:
 			continue
 			# compute the bounding box for the contour, draw it on the frame,
-			# and update the text
 		(x, y, w, h) = cv2.boundingRect(c)
 		# image changed at left side
 		if x < 250:
 			cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 			ball_in_this_time = True
-			text = "Occupied"
 	
 	if not ball_in and ball_in_this_time:
-		points = points + 1
+		total_hits = total_hits + 1
+		if current_time - last_ball_in_time < 1:
+			continous_hits = continous_hits + 1
+		else:
+			total_balls += 1
+			continous_hits = 1
+
+		last_ball_in_time = current_time
+		if continous_hits > max_continuous_hits:
+			max_continuous_hits = continous_hits
 
 	ball_in = ball_in_this_time
 
-	cv2.putText(frame, "Points: {}".format(points), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2)
-	cv2.putText(frame, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"), (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
+	cv2.putText(frame, "Total balls: {}".format(total_balls), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+	cv2.putText(frame, "Total hits: {}".format(total_hits), (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+	cv2.putText(frame, "Cont. hits: {}".format(continous_hits), (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+	cv2.putText(frame, "Max Cont. hits: {}".format(max_continuous_hits), (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+	#cv2.putText(frame, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"), (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
+
 	# show the frame and record if the user presses a key
 	cv2.imshow("original", frame)
 	cv2.imshow("threshold", thresh)
-	cv2.moveWindow("threshold", 0, 310)
+	cv2.moveWindow("threshold", 0, 400)
 	cv2.imshow("Frame Delta", frameDelta)
-	cv2.moveWindow("Frame Delta", 0, 620)
+	cv2.moveWindow("Frame Delta", 0, 800)
 
 	#pts.appendleft(center)
 
@@ -140,3 +160,12 @@ plt.savefig('Time_vs_Theta_Graph.svg', transparent= True)
 # cleanup the camera and close any open windows
 camera.release()
 cv2.destroyAllWindows()
+
+print("""
+############
+Statistics
+############
+	  """)
+print("Total hits: " + str(total_hits))
+print("Total balls: " + str(total_balls))
+print("Max continuous hits: " + str(max_continuous_hits))
