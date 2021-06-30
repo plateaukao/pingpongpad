@@ -1,5 +1,7 @@
 from flask import Flask, request, abort, render_template, jsonify
 from flask_socketio import SocketIO, emit
+import os
+import subprocess
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -28,6 +30,17 @@ def upload():
 def update_status(request_json):
     socketio.emit('status_response', request_json)
     emit('hit_status_response', {'data': 'Server'})
+
+@socketio.on('tracking')
+def start_tracking():
+    print("start tracking")
+    os.system('python3 detect_area_change.py')
+
+@socketio.on('stop')
+def stop_tracking():
+    print("stop tracking")
+    subprocess.Popen("ps -A|grep detect_area_change|awk '{print $1}' | xargs kill -9", shell=True).communicate()
+    
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, host="192.168.1.116")

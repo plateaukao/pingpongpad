@@ -33,10 +33,11 @@ def on_hit_status_response(args):
 socketIO = SocketIO('192.168.1.116', 5000, LoggingNamespace)
 socketIO.on('hit_status_response', on_hit_status_response)
 
+isCamera = False
 if not args.get("video", False):
-#	camera = cv2.VideoCapture(0)
+	#camera = cv2.VideoCapture(0)
 	camera = cv2.VideoCapture('rtsp://192.168.1.131:8086', cv2.CAP_FFMPEG)
-
+	isCamera = True
 # otherwise, grab a reference to the video file
 else:
 	camera = cv2.VideoCapture(args["video"])
@@ -54,15 +55,18 @@ total_hits = 0
 mask = None
 firstFrame = None
 
-ball_in = False
+is_ball_in = False
 max_continuous_hits = 0
 continous_hits = 0
 total_balls = 0
 
-last_ball_in_time = 0
+last_ball_in_frame_count = 0
 
-skip_frames = 100
+skip_frames = 30 if isCamera else 100
 frame_count = 0
+
+last_ball_in_time = None
+
 while True:
 	while (skip_frames > 0):
 		skip_frames -= 1
@@ -71,6 +75,7 @@ while True:
 
 	# grab the current frame
 	(grabbed, frame) = camera.read()
+	current_time = time.time()
 	frame_count += 1
 	
 	# if we are viewing a video and we did not grab a frame,
@@ -95,7 +100,7 @@ while True:
 	cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 	cnts = imutils.grab_contours(cnts)
 	# loop over the contours
-	ball_in_this_time = False
+	is_ball_in_this_time = False
 	for c in cnts:
 		# if the contour is too small, ignore it
 		if cv2.contourArea(c) < 30:
@@ -105,24 +110,34 @@ while True:
 		# image changed at left side
 		if x < 250:
 			cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-			ball_in_this_time = True
+			is_ball_in_this_time = True
 	
-	if not ball_in and ball_in_this_time:
+	if not is_ball_in and is_ball_in_this_time:
 		total_hits = total_hits + 1
-		if frame_count - last_ball_in_time < fps:
+
+		if last_ball_in_time is None:
+			total_balls += 1
+
+		is_within_cont_threshold = frame_count - last_ball_in_frame_count < fps
+		if isCamera:
+			if last_ball_in_time is None or current_time - last_ball_in_time < 1:
+				is_within_cont_threshold = True
+      
+		if is_within_cont_threshold:
 			continous_hits = continous_hits + 1
 		else:
 			total_balls += 1
 			continous_hits = 1
 
-		last_ball_in_time = frame_count
+		last_ball_in_frame_count = frame_count
+		last_ball_in_time = current_time
 		if continous_hits > max_continuous_hits:
 			max_continuous_hits = continous_hits
 
 		socketIO.emit('hit_status', {"total_balls": total_balls, "total_hits": total_hits, "cont_hits": continous_hits, "max_cont_hits": max_continuous_hits})
 		#requests.post("http://192.168.1.116:5000/status", json = {"total_balls": total_balls, "total_hits": total_hits, "cont_hits": continous_hits, "max_cont_hits": max_continuous_hits})
 
-	ball_in = ball_in_this_time
+	is_ball_in = is_ball_in_this_time
 
 	cv2.putText(frame, "Total balls: {}".format(total_balls), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
 	cv2.putText(frame, "Total hits: {}".format(total_hits), (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
