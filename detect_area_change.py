@@ -9,6 +9,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import datetime
 import os
+import requests
+from socketIO_client import SocketIO, LoggingNamespace
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -24,6 +26,12 @@ pts = deque(maxlen=args["buffer"])
 # if a video path was not supplied, grab the reference
 # to the webcam
 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"]="rtsp_transport;udp"
+
+def on_hit_status_response(args):
+    print('on_hit_status_response', args['data'])
+
+socketIO = SocketIO('192.168.1.116', 5000, LoggingNamespace)
+socketIO.on('hit_status_response', on_hit_status_response)
 
 if not args.get("video", False):
 #	camera = cv2.VideoCapture(0)
@@ -111,6 +119,9 @@ while True:
 		if continous_hits > max_continuous_hits:
 			max_continuous_hits = continous_hits
 
+		socketIO.emit('hit_status', {"total_balls": total_balls, "total_hits": total_hits, "cont_hits": continous_hits, "max_cont_hits": max_continuous_hits})
+		#requests.post("http://192.168.1.116:5000/status", json = {"total_balls": total_balls, "total_hits": total_hits, "cont_hits": continous_hits, "max_cont_hits": max_continuous_hits})
+
 	ball_in = ball_in_this_time
 
 	cv2.putText(frame, "Total balls: {}".format(total_balls), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
@@ -118,9 +129,6 @@ while True:
 	cv2.putText(frame, "Cont. hits: {}".format(continous_hits), (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
 	cv2.putText(frame, "Max Cont. hits: {}".format(max_continuous_hits), (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
 	#cv2.putText(frame, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"), (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
-	f = open("data.txt", "w")
-	f.write(str(total_balls) + ":" + str(total_hits) + ":" + str(continous_hits) + ":" + str(max_continuous_hits) + ":")
-	f.close()
 
 	# show the frame and record if the user presses a key
 	cv2.imshow("original", frame)
