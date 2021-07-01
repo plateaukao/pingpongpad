@@ -23,10 +23,13 @@ def index():
 
 @socketio.on('hit_status')
 def update_status(request_json):
-    socketio.emit('status_response', request_json)
     cache['total_balls'] = request_json['total_balls']
     cache['total_hits'] = request_json['total_hits']
     cache['max_cont_hits'] = request_json['max_cont_hits']
+    duration = time.time() - cache['start_time']
+    cache['duration'] = duration
+    request_json['duration'] = '%02d:%02d:%02d' % (duration / 60 / 60, duration / 60 % 60, duration % 60)
+    socketio.emit('status_response', request_json)
     #emit('hit_status_response', {'data': 'Server'})
 
 @socketio.on('test_camera')
@@ -43,7 +46,6 @@ def start_tracking():
 @socketio.on('stop')
 def stop_tracking():
     print("stop tracking")
-    cache['duration'] = time.time() - cache['start_time']
     append_to_file(cache)
     subprocess.Popen("ps -A|grep detect_area_change|awk '{print $1}' | xargs kill -9", shell=True).communicate()
     
