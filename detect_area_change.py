@@ -9,19 +9,24 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import datetime
 import os
-import requests
 from socketIO_client import SocketIO, LoggingNamespace
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
-ap.add_argument("-v", "--video",
-	help="path to the (optional) video file")
-ap.add_argument("-b", "--buffer", type=int, default=64,
-	help="max buffer size")
+ap.add_argument("-v", "--video", help="path to the (optional) video file")
+ap.add_argument("-b", "--buffer", type=int, default=64, help="max buffer size")
+ap.add_argument("-t", "--test", default=False, action='store_true')
+ap.add_argument("-r", "--rtsp", default=False, action='store_true')
+ap.add_argument("-w", "--web", default=False, action='store_true')
 args = vars(ap.parse_args())
+is_test = args.get('test')
+is_rtsp = args.get('rtsp')
+is_web = args.get('web')
 
 # initialize the list of tracked points
 pts = deque(maxlen=args["buffer"])
+
+rtsp_url = 'rtsp://192.168.1.131:8086'
 
 # if a video path was not supplied, grab the reference
 # to the webcam
@@ -30,16 +35,19 @@ os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"]="rtsp_transport;udp"
 def on_hit_status_response(args):
     print('on_hit_status_response', args['data'])
 
-socketIO = SocketIO('192.168.1.116', 5000, LoggingNamespace)
-socketIO.on('hit_status_response', on_hit_status_response)
+socketIo = None
+if is_web:
+	socketIO = SocketIO('192.168.1.116', 5000, LoggingNamespace)
+	socketIO.on('hit_status_response', on_hit_status_response)
 
 isCamera = False
-if not args.get("video", False):
-	#camera = cv2.VideoCapture(0)
-	camera = cv2.VideoCapture('rtsp://192.168.1.131:8086', cv2.CAP_FFMPEG)
+if is_rtsp:
+	camera = cv2.VideoCapture(rtsp_url, cv2.CAP_FFMPEG)
 	isCamera = True
-# otherwise, grab a reference to the video file
-else:
+elif not args.get("video", False):
+	camera = cv2.VideoCapture(0)
+	isCamera = True
+else:   	
 	camera = cv2.VideoCapture(args["video"])
 
 #Creating a Pandas DataFrame To Store Data Point
@@ -68,7 +76,7 @@ frame_count = 0
 last_ball_in_time = None
 
 while True:
-	while (skip_frames > 0):
+	while (skip_frames > 0 or is_test):
 		skip_frames -= 1
 		camera.read()
 		frame_count +=1
@@ -91,6 +99,8 @@ while True:
 
 	if firstFrame is None:
 		firstFrame = gray
+		if is_web:
+			socketIO.emit('hit_status', {"total_balls": 0, "total_hits": 0, "cont_hits": 0, "max_cont_hits": 0})
 		continue
 
 	frameDelta = cv2.absdiff(firstFrame, gray)
@@ -120,7 +130,7 @@ while True:
 
 		is_within_cont_threshold = frame_count - last_ball_in_frame_count < fps
 		if isCamera:
-			if last_ball_in_time is None or current_time - last_ball_in_time < 1:
+			if last_ball_in_time is None or current_time - last_ball_in_time < 2:
 				is_within_cont_threshold = True
       
 		if is_within_cont_threshold:
@@ -134,8 +144,8 @@ while True:
 		if continous_hits > max_continuous_hits:
 			max_continuous_hits = continous_hits
 
-		socketIO.emit('hit_status', {"total_balls": total_balls, "total_hits": total_hits, "cont_hits": continous_hits, "max_cont_hits": max_continuous_hits})
-		#requests.post("http://192.168.1.116:5000/status", json = {"total_balls": total_balls, "total_hits": total_hits, "cont_hits": continous_hits, "max_cont_hits": max_continuous_hits})
+		if is_web:
+			socketIO.emit('hit_status', {"total_balls": total_balls, "total_hits": total_hits, "cont_hits": continous_hits, "max_cont_hits": max_continuous_hits})
 
 	is_ball_in = is_ball_in_this_time
 

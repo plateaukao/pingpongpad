@@ -17,20 +17,34 @@
                 $('#max_cont_hits').text(msg.max_cont_hits);
             });
 
-            const button = document.getElementById('tracking');
-
-            button.addEventListener('click', async _ => {
-            try {     
-               if($('#tracking').text() == 'Tracking!') {
-                  socket.emit("tracking");
-                  $('#tracking').text('Stop!')
-               } else {
-                  socket.emit("stop");
-                  $('#tracking').text('Tracking!')
+            const tracking = document.getElementById('tracking');
+            tracking.addEventListener('click', async _ => {
+               try {     
+                  if($('#tracking').text() == 'Tracking!') {
+                     socket.emit("tracking");
+                     $('#tracking').text('Stop!')
+                  } else {
+                     socket.emit("stop");
+                     $('#tracking').text('Tracking!')
+                  }
+               } catch(err) {
+                  console.error(`Error: ${err}`);
                }
-            } catch(err) {
-               console.error(`Error: ${err}`);
-            }
+            });
+
+            const test_camera = document.getElementById('test_camera');
+            test_camera.addEventListener('click', async _ => {
+               try {     
+                  if($('#test_camera').text() == 'Testing Camera!') {
+                     socket.emit("test_camera");
+                     $('#test_camera').text('Recording...')
+                  } else {
+                     socket.emit("stop");
+                     $('#test_camera').text('Testing Camera!')
+                  }
+               } catch(err) {
+                  console.error(`Error: ${err}`);
+               }
             });
         });
     </script>
@@ -40,6 +54,7 @@
     <div><h1 id="total_hits">0</h1>&nbsp; hits</div>
     <div><h1 id="cont_hits">0</h1>&nbsp; cont hits</div>
     <div><h1 id="max_cont_hits">0</h1>&nbsp; max cont hits</div>
+    <button type="button" id="test_camera">Testing Camera!</button>
     <button type="button" id="tracking">Tracking!</button>
    </body>
 </html>
