@@ -1,4 +1,4 @@
-from flask import Flask, request, abort, render_template, jsonify
+from flask import Flask, render_template, jsonify
 from flask_socketio import SocketIO, emit
 import os, time
 import subprocess
@@ -21,6 +21,10 @@ cache = {
 def index():
     return render_template('index.html')
 
+@app.route('/statistics')
+def statistics():
+    return render_template('statistics.html', records = read_grouped_records())
+
 @socketio.on('hit_status')
 def update_status(request_json):
     cache['total_balls'] = request_json['total_balls']
@@ -28,7 +32,6 @@ def update_status(request_json):
     cache['max_cont_hits'] = request_json['max_cont_hits']
     duration = time.time() - cache['start_time']
     cache['duration'] = duration
-    request_json['duration'] = '%02d:%02d:%02d' % (duration / 60 / 60, duration / 60 % 60, duration % 60)
     socketio.emit('status_response', request_json)
     #emit('hit_status_response', {'data': 'Server'})
 
@@ -51,6 +54,6 @@ def stop_tracking():
     
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True, host="192.168.1.116")
+    socketio.run(app, debug=False, host="192.168.1.116")
     #socketio.run(app, debug=True)
     #socketio.run(app)
