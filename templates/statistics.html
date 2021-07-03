@@ -5,9 +5,10 @@
     var records_by_day = {{ records | tojson | safe }};
   </script>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/statistics.css') }}"/>
-    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
-    <script type="text/javascript" charset="utf-8">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script type="text/javascript" charset="utf-8">
         $(document).ready(function(){
             const squares = document.querySelector('.squares');
             const days = Object.keys(records_by_day)
@@ -57,5 +58,8 @@
       <!-- added via javascript -->
     </ul>
   </div>
+<div>
+{{ daily_table }}
+</div>
 </body>
 </html>

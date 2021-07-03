@@ -3,6 +3,7 @@ from flask_socketio import SocketIO, emit
 import os, time
 import subprocess
 from track_records import *
+from track_table import *
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -23,7 +24,10 @@ def index():
 
 @app.route('/statistics')
 def statistics():
-    return render_template('statistics.html', records = read_grouped_records())
+    records = read_grouped_records()
+    mapped_records = map(DailyItem, records.values())
+    table = DailyTable(list(mapped_records))
+    return render_template('statistics.html', records = records, daily_table = table)
 
 @socketio.on('hit_status')
 def update_status(request_json):

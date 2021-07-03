@@ -26,7 +26,7 @@ is_web = args.get('web')
 # initialize the list of tracked points
 pts = deque(maxlen=args["buffer"])
 
-rtsp_url = 'rtsp://192.168.1.131:8086'
+rtsp_url = 'rtsp://192.168.1.134:8086'
 
 # if a video path was not supplied, grab the reference
 # to the webcam

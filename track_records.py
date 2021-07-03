@@ -13,12 +13,14 @@ def read_grouped_records():
         aware_utc_dt = utc_dt.replace(tzinfo=pytz.utc)
         tz = pytz.timezone('Asia/Taipei')
         dt = aware_utc_dt.astimezone(tz)
+        record['date'] = dt
         time_tuple = dt.timetuple()
 
         yday = time_tuple.tm_yday
-        print("month: " + str(time_tuple.tm_mon))
+        #print("month: " + str(time_tuple.tm_mon))
         print("day: " + str(time_tuple.tm_mday))
         print("hour: " + str(time_tuple.tm_hour))
+        print("duration: " + str(record['duration'] / 60))
 
         if yday not in grouped_records.keys():
             grouped_records[yday] = record
@@ -35,7 +37,7 @@ def read_grouped_records():
 def read_records():
     file = open(file_name, 'r')
     lines = file.readlines()
-    records = list(map(string_to_dictionary, lines))
+    records = filter(filter_real_records, list(map(string_to_dictionary, lines)))
     return records
         
 def append_to_file(data):
@@ -44,6 +46,9 @@ def append_to_file(data):
 
 def string_to_dictionary(string_dictionary):
     return ast.literal_eval(string_dictionary)
+
+def filter_real_records(record):
+    return record["total_hits"] > 10
 
 if __name__ == '__main__':
     read_grouped_records()
