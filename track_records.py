@@ -1,5 +1,6 @@
 import ast
 from datetime import datetime
+import pytz
 
 file_name = 'records.txt'
 
@@ -7,7 +8,18 @@ def read_grouped_records():
     records = read_records()
     grouped_records = {}
     for record in records:
-        yday = datetime.fromtimestamp(records[0]['start_time']).timetuple().tm_yday
+        utc_dt = datetime.utcfromtimestamp(record['start_time'])
+        #time_tuple = utc_dt.timetuple()
+        aware_utc_dt = utc_dt.replace(tzinfo=pytz.utc)
+        tz = pytz.timezone('Asia/Taipei')
+        dt = aware_utc_dt.astimezone(tz)
+        time_tuple = dt.timetuple()
+
+        yday = time_tuple.tm_yday
+        print("month: " + str(time_tuple.tm_mon))
+        print("day: " + str(time_tuple.tm_mday))
+        print("hour: " + str(time_tuple.tm_hour))
+
         if yday not in grouped_records.keys():
             grouped_records[yday] = record
         else:
