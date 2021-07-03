@@ -25,7 +25,7 @@ def index():
 @app.route('/statistics')
 def statistics():
     records = read_grouped_records()
-    mapped_records = map(DailyItem, records.values())
+    mapped_records = map(DailyRecord, records.values())
     table = DailyTable(list(mapped_records))
     return render_template('statistics.html', records = records, daily_table = table)
 
