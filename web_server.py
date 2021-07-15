@@ -24,10 +24,11 @@ def index():
 
 @app.route('/statistics')
 def statistics():
-    records = read_grouped_records()
-    mapped_records = map(DailyRecord, records.values())
+    practices = practice_data()
+    daily_records = read_grouped_records()
+    mapped_records = map(DailyRecord, daily_records.values())
     table = DailyTable(list(mapped_records))
-    return render_template('statistics.html', records = records, daily_table = table)
+    return render_template('statistics.html', practice_records = practices, records = daily_records, daily_table = table)
 
 @socketio.on('hit_status')
 def update_status(request_json):

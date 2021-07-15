@@ -11,11 +11,23 @@ body {
   margin: 0;
 }
 
+h1 {
+   font-size: 4em;
+   margin: 0;
+}
+
+h2 {
+   font-size: 3em;
+   margin: 0;
+}
+
 div {
   width: 50%;
   height: 40%;
   float: left;
   text-align: right;
+  font-size: 2em;
+  padding: 0;
 }
 
 #div_up_left {
@@ -42,7 +54,6 @@ div {
            var start_time = new Date();
            var socket = io.connect();
            socket.on('status_response', function(msg) {
-               var date = new Date();
                $('#total_balls').text(msg.total_balls);
                $('#total_hits').text(msg.total_hits);
                $('#cont_hits').text(msg.cont_hits);
@@ -100,9 +111,9 @@ div {
    <body>
     <div id="div_up_left"><h1 id="total_balls" align="right">0</h1>total balls</div>
     <div id="div_up_right"><h1 id="total_hits" align="right">0</h1>total hits</div>
-    <div id="div_bottom_left"><h1 id="cont_hits" align="right" sytle="color:red">0</h1>continuous</div>
-    <div id="div_bottom_right"><h1 id="max_cont_hits" align="right">0</h1>max continous</div>
-    <div><h1 id="duration">00:00</h1></div>
+    <div id="div_bottom_left"><h1 id="cont_hits" align="right" sytle="color:red">0</h1>cont. hits</div>
+    <div id="div_bottom_right"><h1 id="max_cont_hits" align="right">0</h1>max hits</div>
+    <div style="{ width: 100%;}"><h2 id="duration">00:00</h2></div>
     <button type="button" id="test_camera">Testing Camera!</button>
     <button type="button" id="tracking">Tracking!</button>
    </body>
