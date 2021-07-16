@@ -53,12 +53,14 @@ def practice_data():
     data["datasets"] = []
     data["datasets"].append({ "type": "bar", "data": [], "backgroundColor": [], "label": "Practice Duration", "yAxisID": "duration" })
     data["datasets"].append({ "type": "line", "data": [], "label": "Total hits", "borderColor": 'rgb(75, 192, 192)',})
+    data["datasets"].append({ "type": "line", "data": [], "label": "hits/ball", "borderColor": 'rgb(75, 75, 192)', "yAxisID": "averageBalls"})
     current_date_str = None
     for record in records:
         date_str = record["date"].strftime("%m/%d")
         time_str = record["date"].strftime("%H:%M")
         duration = int(record["duration"] / 60) + 1
         total_hits = record["total_hits"]
+        average_hits = record["total_hits"] / record["total_balls"]
         if current_date_str == date_str:
             data["labels"].append(time_str)
         else:
@@ -72,6 +74,7 @@ def practice_data():
         data["datasets"][0]["data"].append(duration)
         data["datasets"][0]["backgroundColor"].append(day_color)
         data["datasets"][1]["data"].append(total_hits)
+        data["datasets"][2]["data"].append(average_hits)
     return data
 
 def append_to_file(data):

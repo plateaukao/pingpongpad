@@ -60,7 +60,7 @@
       <!-- added via javascript -->
     </ul>
   </div>
-<canvas id="myChart" width="100" height="20"></canvas>
+<canvas id="myChart" style="position: relative; height:40vh; width:80vw"></canvas>
 <script>
 var ctx = document.getElementById('myChart').getContext('2d');
 var myChart = new Chart(ctx, {
@@ -75,11 +75,16 @@ var myChart = new Chart(ctx, {
                 ticks: {
                     display: false
                 }
+            },
+            {
+                id: 'averageBalls',
+                type: 'linear',
+                position: 'right',
+                ticks: {
+                    display: true
+                }
             }
             ],
-            y: {
-                beginAtZero: true
-            }
         }
     }
 });

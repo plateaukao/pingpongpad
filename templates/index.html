@@ -2,7 +2,7 @@
 <html lang="en">
    <head>
       <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-      <title>SocketIO example</title>
+      <title>Ping Pong Pad</title>
       <style>
       html,
 body {
@@ -23,6 +23,24 @@ h2 {
 
 div {
   width: 50%;
+  height: 40%;
+  float: left;
+  text-align: right;
+  font-size: 2em;
+  padding: 0;
+}
+
+divballs {
+  width: 30%;
+  height: 40%;
+  float: left;
+  text-align: right;
+  font-size: 2em;
+  padding: 0;
+}
+
+divhits {
+  width: 70%;
   height: 40%;
   float: left;
   text-align: right;
@@ -109,12 +127,13 @@ div {
     </script>
    </head>
    <body>
-    <div id="div_up_left"><h1 id="total_balls" align="right">0</h1>total balls</div>
-    <div id="div_up_right"><h1 id="total_hits" align="right">0</h1>total hits</div>
-    <div id="div_bottom_left"><h1 id="cont_hits" align="right" sytle="color:red">0</h1>cont. hits</div>
-    <div id="div_bottom_right"><h1 id="max_cont_hits" align="right">0</h1>max hits</div>
-    <div style="{ width: 100%;}"><h2 id="duration">00:00</h2></div>
-    <button type="button" id="test_camera">Testing Camera!</button>
-    <button type="button" id="tracking">Tracking!</button>
+    <divballs id="div_up_left"><h1 id="total_balls" align="right">0</h1><span style="font-size: 50%;">balls</divballs>
+    <divhits id="div_up_right"><h1 id="total_hits" align="right">0</h1><span style="font-size: 50%;">hits</divhits>
+    <div id="div_bottom_left"><h1 id="cont_hits" align="right" sytle="color:red">0</h1><span style="font-size: 50%;">cont. hits</div>
+    <div id="div_bottom_right"><h1 id="max_cont_hits" align="right">0</h1><span style="font-size: 50%;">max hits</div>
+    <div style="{ width: 100%;}">
+      <h2 id="duration">00:00</h2>
+      <button type="button" id="tracking"><span style="font-size: 200%;">Tracking!</span></button>
+    </div>
    </body>
 </html>
