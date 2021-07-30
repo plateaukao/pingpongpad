@@ -4,7 +4,7 @@
 /* Grid-related CSS */
 
 :root {
-    --square-size: 10px;
+    --square-size: 20px;
     --square-gap: 3px;
     --week-width: calc(var(--square-size) + var(--square-gap));
 }
@@ -30,13 +30,7 @@
 
 .months {
     display: grid;
-    grid-template-columns: calc(var(--week-width) * 4)/* Jan */
-    calc(var(--week-width) * 4)/* Feb */
-    calc(var(--week-width) * 4)/* Mar */
-    calc(var(--week-width) * 5)/* Apr */
-    calc(var(--week-width) * 4)/* May */
-    calc(var(--week-width) * 4)/* Jun */
-    calc(var(--week-width) * 5)/* Jul */
+    grid-template-columns: calc(var(--week-width) * 5)/* Jul */
     calc(var(--week-width) * 4)/* Aug */
     calc(var(--week-width) * 4)/* Sep */
     calc(var(--week-width) * 5)/* Oct */

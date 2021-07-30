@@ -9,7 +9,9 @@ class DailyTable(Table):
     duration = Col('Duration')
     total_balls = Col('Total Balls')
     total_hits= Col('Total Hits')
-    max_cont_hits = Col('Max Continuous Hits')
+    average_hits = Col('Avg. Hits')
+    max_cont_hits = Col('Long Hits')
+
 
 class DailyRecord(object):
     def __init__(self, object):
@@ -18,6 +20,7 @@ class DailyRecord(object):
         self.duration = "%d:%02d" % (duration / 60, duration % 60)
         self.total_balls = object["total_balls"]
         self.total_hits = object["total_hits"]
+        self.average_hits = int(object["total_hits"] / object["total_balls"])
         self.max_cont_hits = object["max_cont_hits"]
 
 if __name__ == '__main__':

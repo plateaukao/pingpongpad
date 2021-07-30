@@ -14,7 +14,7 @@
         $(document).ready(function(){
             const squares = document.querySelector('.squares');
             const days = Object.keys(records_by_day)
-            for (var i = 1; i < 365; i++) {
+            for (var i = 178; i < 365; i++) {
                 if (!days.includes(i.toString())) {
                     squares.insertAdjacentHTML('beforeend', `<li data-level="0"></li>`);
                 } else {
@@ -34,12 +34,6 @@
 <body>
 <div class="graph">
     <ul class="months">
-      <li>Jan</li>
-      <li>Feb</li>
-      <li>Mar</li>
-      <li>Apr</li>
-      <li>May</li>
-      <li>Jun</li>
       <li>Jul</li>
       <li>Aug</li>
       <li>Sep</li>

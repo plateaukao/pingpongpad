@@ -22,6 +22,7 @@ def read_grouped_records():
             day_record['duration'] += record['duration']
             day_record['total_balls'] += record['total_balls']
             day_record['total_hits'] += record['total_hits']
+            day_record['average_hits'] = int(record['total_hits'] / record['total_balls'])
             if day_record['max_cont_hits'] < record['max_cont_hits']:
                 day_record['max_cont_hits'] = record['max_cont_hits']
     print(grouped_records)
