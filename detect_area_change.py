@@ -75,6 +75,7 @@ frame_count = 0
 
 last_ball_in_time = None
 
+
 while True:
 	while (skip_frames > 0 or is_test):
 		skip_frames -= 1
@@ -94,17 +95,33 @@ while True:
 	# resize the frame, blur it, and convert it to the HSV
 	# color space
 	frame = imutils.resize(frame, width=500)
-	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-	gray = cv2.GaussianBlur(gray, (21, 21), 0)
+	#gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+	#gray = cv2.GaussianBlur(gray, (21, 21), 0)
+
+	hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+	# Red color
+	lower_red = np.array([0,120,70])
+	upper_red = np.array([10,255,255])
+	mask1 = cv2.inRange(hsv, lower_red, upper_red)
+	lower_red = np.array([170,120,70])
+	upper_red = np.array([180,255,255])
+	mask2 = cv2.inRange(hsv,lower_red,upper_red)
+	red_mask = mask1 + mask2
+
+	red = cv2.bitwise_and(frame, frame, mask=red_mask)
+	red = cv2.cvtColor(red, cv2.COLOR_BGR2GRAY)
+	red = cv2.GaussianBlur(red, (11, 11), 0)
 
 	if firstFrame is None:
-		firstFrame = gray
+		#firstFrame = gray
+		firstFrame = red
 		if is_web:
 			socketIO.emit('hit_status', {"total_balls": 0, "total_hits": 0, "cont_hits": 0, "max_cont_hits": 0})
 		continue
 
-	frameDelta = cv2.absdiff(firstFrame, gray)
-	thresh = cv2.threshold(frameDelta, 50, 255, cv2.THRESH_BINARY)[1]
+	#frameDelta = cv2.absdiff(firstFrame, gray)
+	frameDelta = cv2.absdiff(firstFrame, red)
+	thresh = cv2.threshold(frameDelta, 25, 255, cv2.THRESH_BINARY)[1]
 	thresh = cv2.dilate(thresh, None, iterations=2)
 
 	cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -118,9 +135,8 @@ while True:
 			# compute the bounding box for the contour, draw it on the frame,
 		(x, y, w, h) = cv2.boundingRect(c)
 		# image changed at left side
-		if x < 250:
-			cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-			is_ball_in_this_time = True
+		cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+		is_ball_in_this_time = True
 	
 	if not is_ball_in and is_ball_in_this_time:
 		total_hits = total_hits + 1
@@ -149,19 +165,20 @@ while True:
 
 	is_ball_in = is_ball_in_this_time
 
-	cv2.putText(frame, "Total balls: {}".format(total_balls), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-	cv2.putText(frame, "Total hits: {}".format(total_hits), (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-	cv2.putText(frame, "Cont. hits: {}".format(continous_hits), (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-	cv2.putText(frame, "Max Cont. hits: {}".format(max_continuous_hits), (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-	#cv2.putText(frame, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"), (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
-
 	# show the frame and record if the user presses a key
-	cv2.imshow("original", frame)
-	cv2.imshow("threshold", thresh)
-	cv2.moveWindow("threshold", 0, 400)
-	cv2.imshow("Frame Delta", frameDelta)
-	cv2.moveWindow("Frame Delta", 0, 800)
-	#cv2.moveWindow("Red Mask", 0, 1200)
+	if not is_rtsp:
+		cv2.putText(frame, "Total balls: {}".format(total_balls), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+		cv2.putText(frame, "Total hits: {}".format(total_hits), (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+		cv2.putText(frame, "Cont. hits: {}".format(continous_hits), (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+		cv2.putText(frame, "Max Cont. hits: {}".format(max_continuous_hits), (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+		#cv2.putText(frame, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"), (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
+
+		cv2.imshow("original", frame)
+		cv2.imshow("threshold", thresh)
+		cv2.imshow("red", red)
+		cv2.moveWindow("threshold", 0, 400)
+		cv2.imshow("Frame Delta", frameDelta)
+		cv2.moveWindow("Frame Delta", 0, 800)
 
 	#pts.appendleft(center)
 
